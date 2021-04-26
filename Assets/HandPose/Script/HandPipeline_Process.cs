@@ -15,15 +15,12 @@ partial class HandPipeline
 
     void RunPipeline(Texture input)
     {
-        // hand detection
+        // Palm detection
         _detector.palm.ProcessImage(input);
 
-        // Cancel if the hand detection score is too low.
+        // Hand region update
         var palm = _detector.palm.Detections.FirstOrDefault();
-        if (palm.score < 0.5f) return;
-
-        // Update the hand region.
-        _handRegion.Update(palm);
+        if (palm.score > 0.3f) _handRegion.Step(palm);
 
         // Hand region cropping
         _preprocess.SetMatrix("_Xform", _handRegion.CropMatrix);

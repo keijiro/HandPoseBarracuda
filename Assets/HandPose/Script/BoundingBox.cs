@@ -39,9 +39,6 @@ readonly struct BoundingBox
     public BoundingBox(float4 v)
       => (Min, Max) = (v.xy, v.zw);
 
-    public BoundingBox(in MediaPipe.BlazePalm.PalmDetector.Detection d)
-      => (Min, Max) = (d.center - d.extent * 0.5f, d.center + d.extent * 0.5f);
-
     public static BoundingBox CenterExtent(float2 center, float2 extent)
       => new BoundingBox(center - extent, center + extent);
 
@@ -51,22 +48,6 @@ readonly struct BoundingBox
 
     public static BoundingBox operator * (BoundingBox b, float scale)
       => CenterExtent(b.Center, b.Extent * scale);
-
-    #endregion
-
-    #region Math operations
-
-    public static float CalculateIOU(BoundingBox b1, BoundingBox b2)
-    {
-        var area0 = (b1.Max.x - b1.Min.x) * (b1.Max.y - b1.Min.y);
-        var area1 = (b2.Max.x - b2.Min.x) * (b2.Max.y - b2.Min.y);
-
-        var p0 = math.max(b1.Min, b2.Min);
-        var p1 = math.min(b1.Max, b2.Max);
-        float areaInner = math.max(0, p1.x - p0.x) * math.max(0, p1.y - p0.y);
-
-        return areaInner / (area0 + area1 - areaInner);
-    }
 
     #endregion
 }
