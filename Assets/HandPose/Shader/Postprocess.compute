@@ -2,41 +2,54 @@
 // Postprocessing compute shader for the hand mesh pipeline
 //
 
-#pragma kernel post_kernel
+#pragma kernel mesh_kernel
 
-#define VERTEX_COUNT 21
+//
+// "One Euro" low pass filter
+//
 
-StructuredBuffer<float4> _post_input;
-RWStructuredBuffer<float4> _post_output;
-
-float4x4 _post_xform;
-float3 _post_filter; // Beta, Min Cutoff, T_e
-
-float post_alpha(float cutoff, float t_e)
+float lpf_alpha(float cutoff, float t_e)
 {
     float r = 2 * 3.141592 * cutoff * t_e;
     return r / (r + 1);
 }
 
-[numthreads(VERTEX_COUNT, 1, 1)]
-void post_kernel(uint id : SV_DispatchThreadID)
+float3 lpf_step_dx(float3 x, float3 p_x, float3 p_dx, float3 params)
 {
-    const float beta = _post_filter.x;
-    const float min_cutoff = _post_filter.y;
-    const float t_e = _post_filter.z;
+    float3 dx = (x - p_x) / params.z;
+    return lerp(p_dx, dx, lpf_alpha(1, params.z));
+}
 
-    float3 x = _post_input[id + 1].xyz;
-    float3 p_x = _post_output[id].xyz;
-    float3 p_dx = _post_output[id + VERTEX_COUNT].xyz;
+float3 lpf_step_x(float3 x, float3 p_x, float3 dx, float3 params)
+{
+    float cutoff = params.y + params.x * length(dx);
+    return lerp(p_x, x, lpf_alpha(cutoff, params.z));
+}
 
-    x = mul(_post_xform, float4(x, 1)).xyz;
+//
+// Hand mesh postprocess
+//
 
-    float3 dx = (x - p_x) / t_e;
-    float3 dx_res = lerp(p_dx, dx, post_alpha(1, t_e));
+#define MESH_VERTEX_COUNT 21
 
-    float cutoff = min_cutoff + beta * length(dx_res);
-    float3 x_res = lerp(p_x, x, post_alpha(cutoff, t_e));
+StructuredBuffer<float4> _mesh_input;
+RWStructuredBuffer<float4> _mesh_output;
 
-    _post_output[id] = float4(x_res, 1);
-    _post_output[id + VERTEX_COUNT] = float4(dx_res, 1);
+float4x4 _mesh_xform;
+float3 _mesh_filter; // Beta, CutOff_min, T_e
+
+[numthreads(MESH_VERTEX_COUNT, 1, 1)]
+void mesh_kernel(uint id : SV_DispatchThreadID)
+{
+    float3 x = _mesh_input[id + 1].xyz;
+    float3 p_x = _mesh_output[id].xyz;
+    float3 p_dx = _mesh_output[id + MESH_VERTEX_COUNT].xyz;
+
+    x = mul(_mesh_xform, float4(x, 1)).xyz;
+
+    float3 dx = lpf_step_dx(x, p_x, p_dx, _mesh_filter);
+    x = lpf_step_x(x, p_x, dx, _mesh_filter);
+
+    _mesh_output[id] = float4(x, 1);
+    _mesh_output[id + MESH_VERTEX_COUNT] = float4(dx, 1);
 }

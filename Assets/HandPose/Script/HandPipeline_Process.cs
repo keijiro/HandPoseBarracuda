@@ -31,10 +31,10 @@ partial class HandPipeline
 
         // Postprocess for hand mesh construction
         var post = _resources.postprocessCompute;
-        post.SetMatrix("_post_xform", _handRegion.CropMatrix);
-        post.SetVector("_post_filter", new Vector3(30, 1.5f, Time.deltaTime));
-        post.SetBuffer(0, "_post_input", _detector.landmark.OutputBuffer);
-        post.SetBuffer(0, "_post_output", _postBuffer);
+        post.SetMatrix("_mesh_xform", _handRegion.CropMatrix);
+        post.SetVector("_mesh_filter", new Vector3(30, 1.5f, Time.deltaTime));
+        post.SetBuffer(0, "_mesh_input", _detector.landmark.OutputBuffer);
+        post.SetBuffer(0, "_mesh_output", _postBuffer);
         post.Dispatch(0, 1, 1, 1);
     }
 }
