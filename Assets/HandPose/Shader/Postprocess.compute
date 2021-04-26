@@ -20,5 +20,5 @@ RWStructuredBuffer<float4> _fx_output;
 [numthreads(FX_VERTEX_COUNT, 1, 1)]
 void HandTransformation(uint id : SV_DispatchThreadID)
 {
-    _fx_output[id] = mul(_fx_xform, float4(_fx_input[id].xyz, 1));
+    _fx_output[id] = mul(_fx_xform, float4(_fx_input[id + 1].xyz, 1));
 }

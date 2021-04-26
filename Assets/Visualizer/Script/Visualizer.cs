@@ -51,12 +51,17 @@ public sealed class Visualizer : MonoBehaviour
 
     void OnRenderObject()
     {
-        // Main view overlay
         var mv = float4x4.Translate(math.float3(-0.25f, 0, 0));
         _material.SetMatrix("_Xform", mv);
         _material.SetBuffer("_Vertices", _pipeline.RefinedVertexBuffer);
+
+        // Key point circles
         _material.SetPass(0);
-        Graphics.DrawProceduralNow(MeshTopology.Lines, 4, 21);
+        Graphics.DrawProceduralNow(MeshTopology.Triangles, 96, 21);
+
+        // Bone lines
+        _material.SetPass(1);
+        Graphics.DrawProceduralNow(MeshTopology.Lines, 2, 4 * 5 + 1);
     }
 
     #endregion
