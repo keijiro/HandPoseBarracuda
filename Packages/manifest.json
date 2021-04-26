@@ -1,0 +1,15 @@
+{
+  "scopedRegistries": [
+    {
+      "name": "Keijiro",
+      "url": "https://registry.npmjs.com",
+      "scopes": [ "jp.keijiro" ]
+    }
+  ],
+  "dependencies": {
+    "com.unity.ugui": "1.0.0",
+    "com.unity.modules.audio": "1.0.0",
+    "jp.keijiro.mediapipe.blazepalm": "1.0.0",
+    "jp.keijiro.mediapipe.handlandmark": "1.0.0"
+  }
+}

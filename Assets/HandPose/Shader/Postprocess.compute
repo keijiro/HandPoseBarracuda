@@ -1,0 +1,24 @@
+//
+// Postprocessing compute shader for the hand mesh pipeline
+//
+
+#pragma kernel HandTransformation
+
+//
+// Kernel 0 - HandTransformation
+//
+// Applies a transformation to the hand vertices.
+//
+
+#define FX_VERTEX_COUNT 21
+
+StructuredBuffer<float4> _fx_input;
+float4x4 _fx_xform;
+
+RWStructuredBuffer<float4> _fx_output;
+
+[numthreads(FX_VERTEX_COUNT, 1, 1)]
+void HandTransformation(uint id : SV_DispatchThreadID)
+{
+    _fx_output[id] = mul(_fx_xform, float4(_fx_input[id].xyz, 1));
+}
