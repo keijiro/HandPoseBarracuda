@@ -38,7 +38,7 @@ sealed partial class HandPipeline : System.IDisposable
         _cropRT = new RenderTexture(224, 224, 0);
 
         var vcount = HandLandmarkDetector.VertexCount;
-        _postBuffer = new ComputeBuffer(vcount, sizeof(float) * 4);
+        _postBuffer = new ComputeBuffer(vcount * 2, sizeof(float) * 4);
     }
 
     void DeallocateObjects()

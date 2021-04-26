@@ -2,23 +2,41 @@
 // Postprocessing compute shader for the hand mesh pipeline
 //
 
-#pragma kernel HandTransformation
+#pragma kernel post_kernel
 
-//
-// Kernel 0 - HandTransformation
-//
-// Applies a transformation to the hand vertices.
-//
+#define VERTEX_COUNT 21
 
-#define FX_VERTEX_COUNT 21
+StructuredBuffer<float4> _post_input;
+RWStructuredBuffer<float4> _post_output;
 
-StructuredBuffer<float4> _fx_input;
-float4x4 _fx_xform;
+float4x4 _post_xform;
+float3 _post_filter; // Beta, Min Cutoff, T_e
 
-RWStructuredBuffer<float4> _fx_output;
-
-[numthreads(FX_VERTEX_COUNT, 1, 1)]
-void HandTransformation(uint id : SV_DispatchThreadID)
+float post_alpha(float cutoff, float t_e)
 {
-    _fx_output[id] = mul(_fx_xform, float4(_fx_input[id + 1].xyz, 1));
+    float r = 2 * 3.141592 * cutoff * t_e;
+    return r / (r + 1);
+}
+
+[numthreads(VERTEX_COUNT, 1, 1)]
+void post_kernel(uint id : SV_DispatchThreadID)
+{
+    const float beta = _post_filter.x;
+    const float min_cutoff = _post_filter.y;
+    const float t_e = _post_filter.z;
+
+    float3 x = _post_input[id + 1].xyz;
+    float3 p_x = _post_output[id].xyz;
+    float3 p_dx = _post_output[id + VERTEX_COUNT].xyz;
+
+    x = mul(_post_xform, float4(x, 1)).xyz;
+
+    float3 dx = (x - p_x) / t_e;
+    float3 dx_res = lerp(p_dx, dx, post_alpha(1, t_e));
+
+    float cutoff = min_cutoff + beta * length(dx_res);
+    float3 x_res = lerp(p_x, x, post_alpha(cutoff, t_e));
+
+    _post_output[id] = float4(x_res, 1);
+    _post_output[id + VERTEX_COUNT] = float4(dx_res, 1);
 }
