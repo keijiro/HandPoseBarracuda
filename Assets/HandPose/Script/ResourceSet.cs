@@ -12,7 +12,6 @@ public sealed class ResourceSet : ScriptableObject
 {
     public MediaPipe.BlazePalm.ResourceSet blazePalm;
     public MediaPipe.HandLandmark.ResourceSet handLandmark;
-
     public Shader preprocessShader;
     public ComputeShader postprocessCompute;
 }

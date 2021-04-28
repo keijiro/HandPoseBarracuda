@@ -1,4 +1,3 @@
-using System.Linq;
 using UnityEngine;
 using Unity.Mathematics;
 
@@ -10,32 +9,33 @@ namespace MediaPipe.HandPose {
 
 partial class HandPipeline
 {
-    // Hand region tracker
-    HandRegion _handRegion = new HandRegion();
-
     void RunPipeline(Texture input)
     {
+        var post = _resources.postprocessCompute;
+
         // Palm detection
         _detector.palm.ProcessImage(input);
 
         // Hand region update
-        var palm = _detector.palm.Detections.FirstOrDefault();
-        if (palm.score > 0.3f) _handRegion.Step(palm);
+        post.SetFloat("_bbox_dt", Time.deltaTime);
+        post.SetBuffer(0, "_bbox_count", _detector.palm.CountBuffer);
+        post.SetBuffer(0, "_bbox_palm", _detector.palm.DetectionBuffer);
+        post.SetBuffer(0, "_bbox_region", _computeBuffer.region);
+        post.Dispatch(0, 1, 1, 1);
 
         // Hand region cropping
-        _preprocess.SetMatrix("_Xform", _handRegion.CropMatrix);
+        _preprocess.SetBuffer("_HandRegion", _computeBuffer.region);
         Graphics.Blit(input, _cropRT, _preprocess, 0);
 
         // Hand landmark detection
         _detector.landmark.ProcessImage(_cropRT);
 
         // Postprocess for hand mesh construction
-        var post = _resources.postprocessCompute;
-        post.SetMatrix("_mesh_xform", _handRegion.CropMatrix);
-        post.SetVector("_mesh_filter", new Vector3(30, 1.5f, Time.deltaTime));
-        post.SetBuffer(0, "_mesh_input", _detector.landmark.OutputBuffer);
-        post.SetBuffer(0, "_mesh_output", _postBuffer);
-        post.Dispatch(0, 1, 1, 1);
+        post.SetFloat("_mesh_dt", Time.deltaTime);
+        post.SetBuffer(1, "_mesh_input", _detector.landmark.OutputBuffer);
+        post.SetBuffer(1, "_mesh_region", _computeBuffer.region);
+        post.SetBuffer(1, "_mesh_output", _computeBuffer.post);
+        post.Dispatch(1, 1, 1, 1);
     }
 }
 

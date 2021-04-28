@@ -53,7 +53,7 @@ public sealed class Visualizer : MonoBehaviour
     {
         var mv = float4x4.Translate(math.float3(-0.25f, 0, 0));
         _material.SetMatrix("_Xform", mv);
-        _material.SetBuffer("_Vertices", _pipeline.RefinedVertexBuffer);
+        _material.SetBuffer("_Vertices", _pipeline.VertexBuffer);
 
         // Key point circles
         _material.SetPass(0);

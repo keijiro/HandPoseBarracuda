@@ -2,33 +2,89 @@
 // Postprocessing compute shader for the hand mesh pipeline
 //
 
+#pragma kernel bbox_kernel
 #pragma kernel mesh_kernel
 
+#include "HandRegion.hlsl"
 #include "LowPassFilter.hlsl"
+#include "Misc.hlsl"
+#include "Packages/jp.keijiro.mediapipe.blazepalm/Shader/Struct.hlsl"
 
 //
-// Hand mesh postprocess
+// Palm detection postprocess (bounding box operations)
+//
+
+float _bbox_dt;
+
+StructuredBuffer<PalmDetection> _bbox_palm;
+ByteAddressBuffer _bbox_count;
+
+RWStructuredBuffer<HandRegion> _bbox_region;
+
+[numthreads(1, 1, 1)]
+void bbox_kernel(uint id : SV_DispatchThreadID)
+{
+    uint entry_count = _bbox_count.Load(0);
+    if (entry_count == 0) return;
+
+    // Input from the palm detection model
+    const PalmDetection palm = _bbox_palm[0];
+
+    // Palm region size (squarified and enlarged bounding box)
+    float size = max(palm.extent.x, palm.extent.y) * 3;
+
+    // Palm angle
+    const float2 up = palm.keyPoints[3] - palm.keyPoints[0];
+    float angle = atan2(up.y, up.x) - PI / 2;
+
+    // Hand region structure. We're going to update this.
+    HandRegion region = _bbox_region[0];
+
+    // Low pass filter parameters and input vector
+    const float3 lpf_params = float3(2, 1.5f, _bbox_dt);
+    const float4 box = float4(palm.center, size, angle);
+    region.dBox = lpf_Step_dx(box, region.box, region.dBox, lpf_params);
+    region.box = lpf_Step_x(box, region.box, region.dBox, lpf_params);
+
+    // Region crop matrix update
+    float4x4 m1 = makeTranslationMatrix(region.box.xy - region.box.z / 2);
+    float4x4 m2 = makeScalingMatrix(region.box.z);
+    float4x4 m3 = makeTranslationMatrix(0.5);
+    float4x4 m4 = makeRotationMatrix(region.box.w);
+    float4x4 m5 = makeTranslationMatrix(-0.5 + float2(0, 0.15));
+    region.cropMatrix = mul(mul(mul(mul(m1, m2), m3), m4), m5);
+
+    // Compute buffer update
+    _bbox_region[0] = region;
+}
+
+//
+// Hand landmark postprocess
 //
 
 #define MESH_VERTEX_COUNT 21
 
-StructuredBuffer<float4> _mesh_input;
-RWStructuredBuffer<float4> _mesh_output;
+float _mesh_dt;
 
-float4x4 _mesh_xform;
-float3 _mesh_filter; // Beta, CutOff_min, T_e
+StructuredBuffer<float4> _mesh_input;
+StructuredBuffer<HandRegion> _mesh_region;
+
+RWStructuredBuffer<float4> _mesh_output;
 
 [numthreads(MESH_VERTEX_COUNT, 1, 1)]
 void mesh_kernel(uint id : SV_DispatchThreadID)
 {
+    HandRegion region = _mesh_region[0];
+
     float3 x = _mesh_input[id + 1].xyz;
     float3 p_x = _mesh_output[id].xyz;
     float3 p_dx = _mesh_output[id + MESH_VERTEX_COUNT].xyz;
 
-    x = mul(_mesh_xform, float4(x, 1)).xyz;
+    x = mul(region.cropMatrix, float4(x, 1)).xyz;
 
-    float3 dx = lpf_step_dx(x, p_x, p_dx, _mesh_filter);
-    x = lpf_step_x(x, p_x, dx, _mesh_filter);
+    float3 lpf_params = float3(30, 1.5, _mesh_dt);
+    float3 dx = lpf_Step_dx(x, p_x, p_dx, lpf_params);
+    x = lpf_Step_x(x, p_x, dx, lpf_params);
 
     _mesh_output[id] = float4(x, 1);
     _mesh_output[id + MESH_VERTEX_COUNT] = float4(dx, 1);

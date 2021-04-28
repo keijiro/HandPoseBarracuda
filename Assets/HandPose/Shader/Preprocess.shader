@@ -8,14 +8,16 @@ Shader "Hidden/MediaPipe/HandPose/Preprocess"
     CGINCLUDE
 
     #include "UnityCG.cginc"
+    #include "HandRegion.hlsl"
 
     sampler2D _MainTex;
-    float4x4 _Xform;
+
+    StructuredBuffer<HandRegion> _HandRegion;
 
     float4 Fragment(float4 vertex : SV_Position,
                     float2 uv : TEXCOORD0) : SV_Target
     {
-        uv = mul(_Xform, float4(uv, 0, 1)).xy;
+        uv = mul(_HandRegion[0].cropMatrix, float4(uv, 0, 1)).xy;
         return tex2D(_MainTex, uv);
     }
 

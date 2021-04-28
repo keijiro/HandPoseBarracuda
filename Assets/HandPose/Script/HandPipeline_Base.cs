@@ -20,7 +20,7 @@ sealed partial class HandPipeline : System.IDisposable
 
     RenderTexture _cropRT;
 
-    ComputeBuffer _postBuffer;
+    (ComputeBuffer region, ComputeBuffer post) _computeBuffer;
 
     #endregion
 
@@ -38,7 +38,8 @@ sealed partial class HandPipeline : System.IDisposable
         _cropRT = new RenderTexture(224, 224, 0);
 
         var vcount = HandLandmarkDetector.VertexCount;
-        _postBuffer = new ComputeBuffer(vcount * 2, sizeof(float) * 4);
+        _computeBuffer = (new ComputeBuffer(1, sizeof(float) * 24),
+                          new ComputeBuffer(vcount * 2, sizeof(float) * 4));
     }
 
     void DeallocateObjects()
@@ -50,7 +51,8 @@ sealed partial class HandPipeline : System.IDisposable
 
         Object.Destroy(_cropRT);
 
-        _postBuffer.Dispose();
+        _computeBuffer.region.Dispose();
+        _computeBuffer.post.Dispose();
     }
 
     #endregion
