@@ -12,15 +12,11 @@ sealed partial class HandPipeline : System.IDisposable
 {
     #region Private objects
 
+    const int CropSize = HandLandmarkDetector.ImageSize;
+
     ResourceSet _resources;
-
     (PalmDetector palm, HandLandmarkDetector landmark) _detector;
-
-    Material _preprocess;
-
-    RenderTexture _cropRT;
-
-    (ComputeBuffer region, ComputeBuffer post) _computeBuffer;
+    (ComputeBuffer crop, ComputeBuffer region, ComputeBuffer filter) _buffer;
 
     #endregion
 
@@ -33,26 +29,27 @@ sealed partial class HandPipeline : System.IDisposable
         _detector = (new PalmDetector(_resources.blazePalm),
                      new HandLandmarkDetector(_resources.handLandmark));
 
-        _preprocess = new Material(_resources.preprocessShader);
+        // Size of the crop buffer
+        var cropBufferLength = 3 * CropSize * CropSize;
 
-        _cropRT = new RenderTexture(224, 224, 0);
+        // Size of HandRegion struct defined in HandRegion.hlsl
+        var regionBufferSize = sizeof(float) * 24;
 
-        var vcount = HandLandmarkDetector.VertexCount;
-        _computeBuffer = (new ComputeBuffer(1, sizeof(float) * 24),
-                          new ComputeBuffer(vcount * 2, sizeof(float) * 4));
+        // Key point count
+        var keyCount = HandLandmarkDetector.VertexCount;
+
+        _buffer = (new ComputeBuffer(cropBufferLength, sizeof(float)),
+                   new ComputeBuffer(1, regionBufferSize),
+                   new ComputeBuffer(keyCount * 2, sizeof(float) * 4));
     }
 
     void DeallocateObjects()
     {
         _detector.palm.Dispose();
         _detector.landmark.Dispose();
-
-        Object.Destroy(_preprocess);
-
-        Object.Destroy(_cropRT);
-
-        _computeBuffer.region.Dispose();
-        _computeBuffer.post.Dispose();
+        _buffer.crop.Dispose();
+        _buffer.region.Dispose();
+        _buffer.filter.Dispose();
     }
 
     #endregion

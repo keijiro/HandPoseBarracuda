@@ -14,5 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blazePalm: {fileID: 11400000, guid: 4fb839cbed0f44aa1bf81cb6aff8a91f, type: 2}
   handLandmark: {fileID: 11400000, guid: 1edc0d74bd97543caa8c7f0a11b637f1, type: 2}
-  preprocessShader: {fileID: 4800000, guid: 3db277fb5102447fdb8f2cf7f00fde9c, type: 3}
-  postprocessCompute: {fileID: 7200000, guid: 1f9464b75df0f4d2bb9140b4094e31f2, type: 3}
+  compute: {fileID: 7200000, guid: 1f9464b75df0f4d2bb9140b4094e31f2, type: 3}

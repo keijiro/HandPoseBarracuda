@@ -8,20 +8,13 @@ namespace MediaPipe.HandPose {
 
 partial class HandPipeline
 {
-    #region Accessors for detection results
+    #region Public accessors
 
-    public ComputeBuffer VertexBuffer
-      => _computeBuffer.post;
+    public ComputeBuffer KeyPointBuffer
+      => _buffer.filter;
 
-    #endregion
-
-    #region Accessors for internal data
-
-    public ComputeBuffer RawVertexBuffer
-      => _detector.landmark.OutputBuffer;
-
-    public Texture CroppedTexture
-      => _cropRT;
+    public ComputeBuffer HandRegionBuffer
+      => _buffer.region;
 
     #endregion
 

@@ -3,7 +3,8 @@
 //
 
 #pragma kernel bbox_kernel
-#pragma kernel mesh_kernel
+#pragma kernel crop_kernel
+#pragma kernel post_kernel
 
 #include "HandRegion.hlsl"
 #include "LowPassFilter.hlsl"
@@ -11,7 +12,7 @@
 #include "Packages/jp.keijiro.mediapipe.blazepalm/Shader/Struct.hlsl"
 
 //
-// Palm detection postprocess (bounding box operations)
+// Kernel 0: Hand region bounding box update
 //
 
 float _bbox_dt;
@@ -59,33 +60,68 @@ void bbox_kernel(uint id : SV_DispatchThreadID)
 }
 
 //
-// Hand landmark postprocess
+// Kernel 1: Hand region cropping
 //
 
-#define MESH_VERTEX_COUNT 21
+#define CROP_IMAGE_SIZE 224
 
-float _mesh_dt;
+sampler2D _crop_input;
+StructuredBuffer<HandRegion> _crop_region;
 
-StructuredBuffer<float4> _mesh_input;
-StructuredBuffer<HandRegion> _mesh_region;
+RWStructuredBuffer<float> _crop_output;
 
-RWStructuredBuffer<float4> _mesh_output;
-
-[numthreads(MESH_VERTEX_COUNT, 1, 1)]
-void mesh_kernel(uint id : SV_DispatchThreadID)
+[numthreads(8, 8, 1)]
+void crop_kernel(uint2 id : SV_DispatchThreadID)
 {
-    HandRegion region = _mesh_region[0];
+    float4x4 xform = _crop_region[0].cropMatrix;
 
-    float3 x = _mesh_input[id + 1].xyz;
-    float3 p_x = _mesh_output[id].xyz;
-    float3 p_dx = _mesh_output[id + MESH_VERTEX_COUNT].xyz;
+    // UV coordinates
+    float2 uv = (id + 0.5) / CROP_IMAGE_SIZE;
+    uv.y = 1 - uv.y;
+    uv = mul(xform, float4(uv, 0, 1)).xy;
+
+    // UV gradients
+    float2 duv_dx = mul(xform, float4(1.0 / CROP_IMAGE_SIZE, 0, 0, 0)).xy;
+    float2 duv_dy = mul(xform, float4(0, -1.0 / CROP_IMAGE_SIZE, 0, 0)).xy;
+
+    // Texture sample
+    float3 rgb = tex2Dgrad(_crop_input, uv, duv_dx, duv_dy).rgb;
+
+    // Tensor element output
+    uint offs = (id.y * CROP_IMAGE_SIZE + id.x) * 3;
+    _crop_output[offs + 0] = rgb.r;
+    _crop_output[offs + 1] = rgb.g;
+    _crop_output[offs + 2] = rgb.b;
+}
+
+//
+// Kernel 2: Key point postprocess
+//
+
+#define POST_KEYPOINT_COUNT 21
+
+float _post_dt;
+
+StructuredBuffer<float4> _post_input;
+StructuredBuffer<HandRegion> _post_region;
+
+RWStructuredBuffer<float4> _post_output;
+
+[numthreads(POST_KEYPOINT_COUNT, 1, 1)]
+void post_kernel(uint id : SV_DispatchThreadID)
+{
+    HandRegion region = _post_region[0];
+
+    float3 x = _post_input[id + 1].xyz;
+    float3 p_x = _post_output[id].xyz;
+    float3 p_dx = _post_output[id + POST_KEYPOINT_COUNT].xyz;
 
     x = mul(region.cropMatrix, float4(x, 1)).xyz;
 
-    float3 lpf_params = float3(30, 1.5, _mesh_dt);
+    float3 lpf_params = float3(30, 1.5, _post_dt);
     float3 dx = lpf_Step_dx(x, p_x, p_dx, lpf_params);
     x = lpf_Step_x(x, p_x, dx, lpf_params);
 
-    _mesh_output[id] = float4(x, 1);
-    _mesh_output[id + MESH_VERTEX_COUNT] = float4(dx, 1);
+    _post_output[id] = float4(x, 1);
+    _post_output[id + POST_KEYPOINT_COUNT] = float4(dx, 1);
 }

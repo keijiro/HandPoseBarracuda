@@ -1,6 +1,5 @@
 using UnityEngine;
-using Unity.Mathematics;
-using UI = UnityEngine.UI;
+using UnityEngine.UI;
 
 namespace MediaPipe.HandPose {
 
@@ -11,17 +10,18 @@ public sealed class Visualizer : MonoBehaviour
     [SerializeField] WebcamInput _webcam = null;
     [Space]
     [SerializeField] ResourceSet _resources = null;
-    [SerializeField] Shader _shader = null;
+    [SerializeField] Shader _keyPointShader = null;
+    [SerializeField] Shader _handRegionShader = null;
     [Space]
-    [SerializeField] UI.RawImage _mainUI = null;
-    [SerializeField] UI.RawImage _cropUI = null;
+    [SerializeField] RawImage _mainUI = null;
+    [SerializeField] RawImage _cropUI = null;
 
     #endregion
 
     #region Private members
 
     HandPipeline _pipeline;
-    Material _material;
+    (Material keys, Material region) _material;
 
     #endregion
 
@@ -30,37 +30,43 @@ public sealed class Visualizer : MonoBehaviour
     void Start()
     {
         _pipeline = new HandPipeline(_resources);
-        _material = new Material(_shader);
+        _material = (new Material(_keyPointShader),
+                     new Material(_handRegionShader));
+
+        // Material initial setup
+        _material.keys.SetVector("_Offset", new Vector2(-0.25f, 0));
+        _material.keys.SetBuffer("_KeyPoints", _pipeline.KeyPointBuffer);
+        _material.region.SetBuffer("_HandRegion", _pipeline.HandRegionBuffer);
+
+        // UI setup
+        _cropUI.material = _material.region;
     }
 
     void OnDestroy()
     {
         _pipeline.Dispose();
-        Destroy(_material);
+        Destroy(_material.keys);
+        Destroy(_material.region);
     }
 
     void LateUpdate()
     {
-        // Processing on the hand pipeline
+        // Feed the input image to the Hand pose pipeline.
         _pipeline.ProcessImage(_webcam.Texture);
 
         // UI update
         _mainUI.texture = _webcam.Texture;
-        _cropUI.texture = _pipeline.CroppedTexture;
+        _cropUI.texture = _webcam.Texture;
     }
 
     void OnRenderObject()
     {
-        var mv = float4x4.Translate(math.float3(-0.25f, 0, 0));
-        _material.SetMatrix("_Xform", mv);
-        _material.SetBuffer("_Vertices", _pipeline.VertexBuffer);
-
         // Key point circles
-        _material.SetPass(0);
+        _material.keys.SetPass(0);
         Graphics.DrawProceduralNow(MeshTopology.Triangles, 96, 21);
 
-        // Bone lines
-        _material.SetPass(1);
+        // Skeleton lines
+        _material.keys.SetPass(1);
         Graphics.DrawProceduralNow(MeshTopology.Lines, 2, 4 * 5 + 1);
     }
 
