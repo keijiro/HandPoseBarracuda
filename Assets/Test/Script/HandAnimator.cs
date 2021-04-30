@@ -16,6 +16,8 @@ public sealed class HandAnimator : MonoBehaviour
     [Space]
     [SerializeField] Material _jointMaterial = null;
     [SerializeField] Material _boneMaterial = null;
+    [Space]
+    [SerializeField] RawImage _monitorUI = null;
 
     #endregion
 
@@ -87,6 +89,9 @@ public sealed class HandAnimator : MonoBehaviour
             var xform = CalculateBoneXform(p1, p2);
             Graphics.DrawMesh(_boneMesh, xform, _boneMaterial, layer);
         }
+
+        // UI update
+        _monitorUI.texture = _webcam.Texture;
     }
 
     #endregion
