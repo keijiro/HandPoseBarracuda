@@ -9,6 +9,7 @@ public sealed class HandAnimator : MonoBehaviour
 
     [SerializeField] WebcamInput _webcam = null;
     [SerializeField] ResourceSet _resources = null;
+    [SerializeField] bool _useAsyncReadback = true;
     [Space]
     [SerializeField] Mesh _jointMesh = null;
     [SerializeField] Mesh _boneMesh = null;
@@ -66,6 +67,7 @@ public sealed class HandAnimator : MonoBehaviour
     void LateUpdate()
     {
         // Feed the input image to the Hand pose pipeline.
+        _pipeline.UseAsyncReadback = _useAsyncReadback;
         _pipeline.ProcessImage(_webcam.Texture);
 
         var layer = gameObject.layer;

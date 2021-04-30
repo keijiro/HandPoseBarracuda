@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace MediaPipe.HandPose {
 
@@ -8,11 +9,13 @@ namespace MediaPipe.HandPose {
 
 sealed partial class HandPipeline
 {
+    #region Read cache operations
+
     Vector4[] _readCache = new Vector4[KeyPointCount];
     bool _readFlag;
 
     Vector4[] ReadCache
-      => _readFlag ? _readCache : UpdateReadCache();
+      => (_readFlag || UseAsyncReadback) ? _readCache : UpdateReadCache();
 
     Vector4[] UpdateReadCache()
     {
@@ -22,7 +25,27 @@ sealed partial class HandPipeline
     }
 
     void InvalidateReadCache()
-      => _readFlag = false;
+    {
+        if (UseAsyncReadback)
+            AsyncGPUReadback.Request
+              (_buffer.filter, ReadbackBytes, 0, ReadbackCompleteAction);
+        else
+            _readFlag = false;
+    }
+
+    #endregion
+
+    #region GPU async operation callback
+
+    const int ReadbackBytes = KeyPointCount * sizeof(float) * 4;
+
+    System.Action<AsyncGPUReadbackRequest> ReadbackCompleteAction
+      => OnReadbackComplete;
+
+    void OnReadbackComplete(AsyncGPUReadbackRequest req)
+      => req.GetData<Vector4>().CopyTo(_readCache);
+
+    #endregion
 }
 
 } // namespace MediaPipe.HandPose

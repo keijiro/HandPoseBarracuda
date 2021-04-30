@@ -40,7 +40,9 @@ partial class HandPipeline
 
     #endregion
 
-    #region Public methods
+    #region Public properties and methods
+
+    public bool UseAsyncReadback { get; set; } = true;
 
     public HandPipeline(ResourceSet resources)
       => AllocateObjects(resources);
