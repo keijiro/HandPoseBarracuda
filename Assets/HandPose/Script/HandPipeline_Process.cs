@@ -37,6 +37,9 @@ partial class HandPipeline
         cs.SetBuffer(2, "_post_region", _buffer.region);
         cs.SetBuffer(2, "_post_output", _buffer.filter);
         cs.Dispatch(2, 1, 1, 1);
+
+        // Read cache invalidation
+        InvalidateReadCache();
     }
 }
 

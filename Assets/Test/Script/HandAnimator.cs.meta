@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 93729238bf42448ec9e93e0e8d0bdd9a
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - _webcam: {instanceID: 0}
+  - _resources: {fileID: 11400000, guid: 91bfddd4f6a664d13be4b4a5340a2099, type: 2}
+  - _jointMesh: {instanceID: 0}
+  - _boneMesh: {instanceID: 0}
+  - _jointMaterial: {instanceID: 0}
+  - _boneMaterial: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

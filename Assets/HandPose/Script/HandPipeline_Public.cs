@@ -8,7 +8,29 @@ namespace MediaPipe.HandPose {
 
 partial class HandPipeline
 {
-    #region Public accessors
+    #region Detection data accessors
+
+    public const int KeyPointCount = 21;
+
+    public enum KeyPoint
+    {
+        Wrist,
+        Thumb1,  Thumb2,  Thumb3,  Thumb4,
+        Index1,  Index2,  Index3,  Index4,
+        Middle1, Middle2, Middle3, Middle4,
+        Ring1,   Ring2,   Ring3,   Ring4,
+        Pinky1,  Pinky2,  Pinky3,  Pinky4
+    }
+
+    public Vector3 GetKeyPoint(KeyPoint point)
+      => ReadCache[(int)point];
+
+    public Vector3 GetKeyPoint(int index)
+      => ReadCache[index];
+
+    #endregion
+
+    #region GPU-side resource accessors
 
     public ComputeBuffer KeyPointBuffer
       => _buffer.filter;

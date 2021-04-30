@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace MediaPipe.HandPose {
 
-public sealed class Visualizer : MonoBehaviour
+public sealed class HandVisualizer : MonoBehaviour
 {
     #region Editable attributes
 
