@@ -8,6 +8,7 @@ public sealed class WebcamInput : MonoBehaviour
 
     [SerializeField] string _deviceName = "";
     [SerializeField] Vector2Int _resolution = new Vector2Int(1920, 1080);
+    [SerializeField] float _frameRate = 60;
     [SerializeField] Texture2D _dummyImage = null;
 
     #endregion
@@ -31,7 +32,8 @@ public sealed class WebcamInput : MonoBehaviour
     void Start()
     {
         if (_dummyImage != null) return;
-        _webcam = new WebCamTexture(_deviceName, _resolution.x, _resolution.y);
+        _webcam = new WebCamTexture
+          (_deviceName, _resolution.x, _resolution.y, (int)_frameRate);
         _buffer = new RenderTexture(_resolution.x, _resolution.y, 0);
         _webcam.Play();
     }
