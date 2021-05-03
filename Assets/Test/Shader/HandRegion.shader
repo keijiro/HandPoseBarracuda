@@ -47,6 +47,8 @@ Shader "Hidden/MediaPipe/HandPose/Visualizer/HandRegion"
 
     SubShader
     {
+        Tags { "Queue"="Transparent" }
+        ZWrite Off Blend SrcAlpha OneMinusSrcAlpha
         Pass
         {
             CGPROGRAM
