@@ -14,8 +14,10 @@ Shader "Hidden/MediaPipe/HandPose/Visualizer/HandRegion"
     #include "UnityCG.cginc"
     #include "../../HandPose/Shader/HandRegion.hlsl"
 
+    #define IMAGE_WIDTH 224
+
     sampler2D _MainTex;
-    StructuredBuffer<HandRegion> _HandRegion;
+    StructuredBuffer<float> _Image;
 
     void Vertex(float4 position : POSITION,
                 float2 texCoord : TEXCOORD0,
@@ -24,9 +26,8 @@ Shader "Hidden/MediaPipe/HandPose/Visualizer/HandRegion"
                 out float2 outTexCoord : TEXCOORD0,
                 out float4 outColor : COLOR)
     {
-        float4x4 xform = _HandRegion[0].cropMatrix;
         outPosition = UnityObjectToClipPos(position);
-        outTexCoord = mul(xform, float4(texCoord, 0, 1)).xy;
+        outTexCoord = float2(texCoord.x, 1 - texCoord.y);
         outColor = color;
     }
 
@@ -34,7 +35,12 @@ Shader "Hidden/MediaPipe/HandPose/Visualizer/HandRegion"
                     float2 texCoord : TEXCOORD0,
                     float4 color : COLOR) : SV_Target
     {
-        return tex2D(_MainTex, texCoord) * color;
+        uint2 p = texCoord * IMAGE_WIDTH;
+        uint offs = (p.y * IMAGE_WIDTH + p.x) * 3;
+        float r = _Image[offs + 0];
+        float g = _Image[offs + 1];
+        float b = _Image[offs + 2];
+        return float4(r, g, b, 1)* color;
     }
 
     ENDCG

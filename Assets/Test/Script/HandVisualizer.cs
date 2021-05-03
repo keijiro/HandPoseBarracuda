@@ -36,7 +36,7 @@ public sealed class HandVisualizer : MonoBehaviour
         // Material initial setup
         _material.keys.SetVector("_Offset", new Vector2(-0.25f, 0));
         _material.keys.SetBuffer("_KeyPoints", _pipeline.KeyPointBuffer);
-        _material.region.SetBuffer("_HandRegion", _pipeline.HandRegionBuffer);
+        _material.region.SetBuffer("_Image", _pipeline.HandRegionCropBuffer);
 
         // UI setup
         _cropUI.material = _material.region;

@@ -38,6 +38,9 @@ partial class HandPipeline
     public ComputeBuffer HandRegionBuffer
       => _buffer.region;
 
+    public ComputeBuffer HandRegionCropBuffer
+      => _buffer.crop;
+
     #endregion
 
     #region Public properties and methods
