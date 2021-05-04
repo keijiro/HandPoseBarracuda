@@ -14,9 +14,14 @@ sealed partial class HandPipeline : System.IDisposable
 
     const int CropSize = HandLandmarkDetector.ImageSize;
 
+    int InputWidth => _detector.palm.ImageSize;
+
     ResourceSet _resources;
+
     (PalmDetector palm, HandLandmarkDetector landmark) _detector;
-    (ComputeBuffer crop, ComputeBuffer region, ComputeBuffer filter) _buffer;
+
+    (ComputeBuffer input, ComputeBuffer crop,
+     ComputeBuffer region, ComputeBuffer filter) _buffer;
 
     #endregion
 
@@ -29,24 +34,22 @@ sealed partial class HandPipeline : System.IDisposable
         _detector = (new PalmDetector(_resources.blazePalm),
                      new HandLandmarkDetector(_resources.handLandmark));
 
-        // Size of the crop buffer
+        var inputBufferLength = 3 * InputWidth * InputWidth;
         var cropBufferLength = 3 * CropSize * CropSize;
+        var regionStructSize = sizeof(float) * 24;
+        var filterBufferLength = HandLandmarkDetector.VertexCount * 2;
 
-        // Size of HandRegion struct defined in HandRegion.hlsl
-        var regionBufferSize = sizeof(float) * 24;
-
-        // Key point count
-        var keyCount = HandLandmarkDetector.VertexCount;
-
-        _buffer = (new ComputeBuffer(cropBufferLength, sizeof(float)),
-                   new ComputeBuffer(1, regionBufferSize),
-                   new ComputeBuffer(keyCount * 2, sizeof(float) * 4));
+        _buffer = (new ComputeBuffer(inputBufferLength, sizeof(float)),
+                   new ComputeBuffer(cropBufferLength, sizeof(float)),
+                   new ComputeBuffer(1, regionStructSize),
+                   new ComputeBuffer(filterBufferLength, sizeof(float) * 4));
     }
 
     void DeallocateObjects()
     {
         _detector.palm.Dispose();
         _detector.landmark.Dispose();
+        _buffer.input.Dispose();
         _buffer.crop.Dispose();
         _buffer.region.Dispose();
         _buffer.filter.Dispose();

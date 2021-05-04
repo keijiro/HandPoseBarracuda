@@ -26,7 +26,6 @@ Shader "Hidden/MediaPipe/HandPose/Visualizer/KeyPoint"
                     out float4 color : COLOR)
     {
         float3 p = _KeyPoints[iid].xyz;
-        p.xy -= 0.5;
 
         uint fan = vid / 3;
         uint segment = vid % 3;
@@ -56,7 +55,6 @@ Shader "Hidden/MediaPipe/HandPose/Visualizer/KeyPoint"
         i = max(segment, vid) == 0 ? root : i;
 
         float3 p = _KeyPoints[i].xyz;
-        p.xy -= 0.5;
 
         position = UnityObjectToClipPos(float4(p, 1));
         color = float4(DepthToColor(p.z), 0.8);

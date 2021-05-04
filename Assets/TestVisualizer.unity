@@ -154,7 +154,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _deviceName: 
-  _resolution: {x: 1080, y: 1080}
+  _resolution: {x: 1920, y: 1080}
   _frameRate: 60
   _dummyImage: {fileID: 0}
 --- !u!114 &362122830
@@ -275,7 +275,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_AspectMode: 3
-  m_AspectRatio: 1
+  m_AspectRatio: 1.7777778
 --- !u!1 &577104479
 GameObject:
   m_ObjectHideFlags: 0

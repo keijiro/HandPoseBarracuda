@@ -12,8 +12,20 @@ partial class HandPipeline
     {
         var cs = _resources.compute;
 
+        // Letterboxing scale factor
+        var scale = new Vector2
+          (Mathf.Max((float)input.height / input.width, 1),
+           Mathf.Max(1, (float)input.width / input.height));
+
+        // Image scaling and padding
+        cs.SetInt("_spad_width", InputWidth);
+        cs.SetVector("_spad_scale", scale);
+        cs.SetTexture(3, "_spad_input", input);
+        cs.SetBuffer(3, "_spad_output", _buffer.input);
+        cs.Dispatch(3, InputWidth / 8, InputWidth / 8, 1);
+
         // Palm detection
-        _detector.palm.ProcessImage(input);
+        _detector.palm.ProcessImage(_buffer.input);
 
         // Hand region bounding box update
         cs.SetFloat("_bbox_dt", Time.deltaTime);
@@ -33,6 +45,7 @@ partial class HandPipeline
 
         // Key point postprocess
         cs.SetFloat("_post_dt", Time.deltaTime);
+        cs.SetFloat("_post_scale", scale.y);
         cs.SetBuffer(2, "_post_input", _detector.landmark.OutputBuffer);
         cs.SetBuffer(2, "_post_region", _buffer.region);
         cs.SetBuffer(2, "_post_output", _buffer.filter);

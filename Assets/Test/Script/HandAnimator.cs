@@ -36,16 +36,10 @@ public sealed class HandAnimator : MonoBehaviour
     };
 
     Matrix4x4 CalculateJointXform(Vector3 pos)
-    {
-        pos -= new Vector3(0.5f, 0.5f, 0);
-        return Matrix4x4.TRS(pos, Quaternion.identity, Vector3.one * 0.07f);
-    }
+      => Matrix4x4.TRS(pos, Quaternion.identity, Vector3.one * 0.07f);
 
     Matrix4x4 CalculateBoneXform(Vector3 p1, Vector3 p2)
     {
-        p1 -= new Vector3(0.5f, 0.5f, 0);
-        p2 -= new Vector3(0.5f, 0.5f, 0);
-
         var length = Vector3.Distance(p1, p2) / 2;
         var radius = 0.03f;
 
