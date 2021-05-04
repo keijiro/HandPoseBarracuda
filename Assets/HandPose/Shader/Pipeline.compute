@@ -2,10 +2,10 @@
 // Postprocessing compute shader for the hand mesh pipeline
 //
 
+#pragma kernel spad_kernel
 #pragma kernel bbox_kernel
 #pragma kernel crop_kernel
 #pragma kernel post_kernel
-#pragma kernel spad_kernel
 
 #include "HandRegion.hlsl"
 #include "LowPassFilter.hlsl"
@@ -13,7 +13,7 @@
 #include "Packages/jp.keijiro.mediapipe.blazepalm/Shader/Struct.hlsl"
 
 //
-// Kernel 3: Input image scaling and padding (letterboxing)
+// Kernel 0: Input image scaling and padding (letterboxing)
 //
 
 uint _spad_width;
@@ -53,7 +53,7 @@ void spad_kernel(uint2 id : SV_DispatchThreadID)
 }
 
 //
-// Kernel 0: Hand region bounding box update
+// Kernel 1: Hand region bounding box update
 //
 
 float _bbox_dt;
@@ -101,7 +101,7 @@ void bbox_kernel(uint id : SV_DispatchThreadID)
 }
 
 //
-// Kernel 1: Hand region cropping
+// Kernel 2: Hand region cropping
 //
 
 #define CROP_IMAGE_SIZE 224
@@ -139,7 +139,7 @@ void crop_kernel(uint2 id : SV_DispatchThreadID)
 }
 
 //
-// Kernel 2: Key point postprocess
+// Kernel 3: Key point postprocess
 //
 
 #define POST_KEYPOINT_COUNT 21
