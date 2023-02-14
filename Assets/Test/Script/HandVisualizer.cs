@@ -1,13 +1,13 @@
 using UnityEngine;
 using UnityEngine.UI;
-
-namespace MediaPipe.HandPose {
+using Klak.TestTools;
+using MediaPipe.HandPose;
 
 public sealed class HandVisualizer : MonoBehaviour
 {
     #region Editable attributes
 
-    [SerializeField] WebcamInput _webcam = null;
+    [SerializeField] ImageSource _source = null;
     [Space]
     [SerializeField] ResourceSet _resources = null;
     [SerializeField] Shader _keyPointShader = null;
@@ -51,11 +51,11 @@ public sealed class HandVisualizer : MonoBehaviour
     void LateUpdate()
     {
         // Feed the input image to the Hand pose pipeline.
-        _pipeline.ProcessImage(_webcam.Texture);
+        _pipeline.ProcessImage(_source.Texture);
 
         // UI update
-        _mainUI.texture = _webcam.Texture;
-        _cropUI.texture = _webcam.Texture;
+        _mainUI.texture = _source.Texture;
+        _cropUI.texture = _source.Texture;
     }
 
     void OnRenderObject()
@@ -71,5 +71,3 @@ public sealed class HandVisualizer : MonoBehaviour
 
     #endregion
 }
-
-} // namespace MediaPipe.HandPose

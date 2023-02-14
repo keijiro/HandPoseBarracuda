@@ -1,13 +1,14 @@
 using UnityEngine;
 using UnityEngine.UI;
-
-namespace MediaPipe.HandPose {
+using Klak.TestTools;
+using MediaPipe.HandPose;
 
 public sealed class HandAnimator : MonoBehaviour
 {
     #region Editable attributes
 
-    [SerializeField] WebcamInput _webcam = null;
+    [SerializeField] ImageSource _source = null;
+    [Space]
     [SerializeField] ResourceSet _resources = null;
     [SerializeField] bool _useAsyncReadback = true;
     [Space]
@@ -64,7 +65,7 @@ public sealed class HandAnimator : MonoBehaviour
     {
         // Feed the input image to the Hand pose pipeline.
         _pipeline.UseAsyncReadback = _useAsyncReadback;
-        _pipeline.ProcessImage(_webcam.Texture);
+        _pipeline.ProcessImage(_source.Texture);
 
         var layer = gameObject.layer;
 
@@ -85,10 +86,8 @@ public sealed class HandAnimator : MonoBehaviour
         }
 
         // UI update
-        _monitorUI.texture = _webcam.Texture;
+        _monitorUI.texture = _source.Texture;
     }
 
     #endregion
 }
-
-} // namespace MediaPipe.HandPose
