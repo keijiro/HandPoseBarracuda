@@ -8,8 +8,8 @@
   ],
   "dependencies": {
     "com.unity.ugui": "1.0.0",
-    "jp.keijiro.mediapipe.blazepalm": "1.0.2",
-    "jp.keijiro.mediapipe.handlandmark": "1.0.1",
+    "jp.keijiro.mediapipe.blazepalm": "2.0.0",
+    "jp.keijiro.mediapipe.handlandmark": "2.0.0",
     "jp.keijiro.klak.testtools": "1.0.4",
     "jp.keijiro.test-assets": "1.0.1"
   }

@@ -20,8 +20,7 @@ sealed partial class HandPipeline : System.IDisposable
 
     (PalmDetector palm, HandLandmarkDetector landmark) _detector;
 
-    (ComputeBuffer input, ComputeBuffer crop,
-     ComputeBuffer region, ComputeBuffer filter) _buffer;
+    (ComputeBuffer region, ComputeBuffer filter) _buffer;
 
     #endregion
 
@@ -34,14 +33,10 @@ sealed partial class HandPipeline : System.IDisposable
         _detector = (new PalmDetector(_resources.blazePalm),
                      new HandLandmarkDetector(_resources.handLandmark));
 
-        var inputBufferLength = 3 * InputWidth * InputWidth;
-        var cropBufferLength = 3 * CropSize * CropSize;
         var regionStructSize = sizeof(float) * 24;
         var filterBufferLength = HandLandmarkDetector.VertexCount * 2;
 
-        _buffer = (new ComputeBuffer(inputBufferLength, sizeof(float)),
-                   new ComputeBuffer(cropBufferLength, sizeof(float)),
-                   new ComputeBuffer(1, regionStructSize),
+        _buffer = (new ComputeBuffer(1, regionStructSize),
                    new ComputeBuffer(filterBufferLength, sizeof(float) * 4));
     }
 
@@ -49,8 +44,6 @@ sealed partial class HandPipeline : System.IDisposable
     {
         _detector.palm.Dispose();
         _detector.landmark.Dispose();
-        _buffer.input.Dispose();
-        _buffer.crop.Dispose();
         _buffer.region.Dispose();
         _buffer.filter.Dispose();
     }

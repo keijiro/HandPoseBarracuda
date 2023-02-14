@@ -39,7 +39,7 @@ partial class HandPipeline
       => _buffer.region;
 
     public ComputeBuffer HandRegionCropBuffer
-      => _buffer.crop;
+      => _detector.landmark.InputBuffer;
 
     #endregion
 

@@ -21,11 +21,11 @@ partial class HandPipeline
         cs.SetInt("_spad_width", InputWidth);
         cs.SetVector("_spad_scale", scale);
         cs.SetTexture(0, "_spad_input", input);
-        cs.SetBuffer(0, "_spad_output", _buffer.input);
+        cs.SetBuffer(0, "_spad_output", _detector.palm.InputBuffer);
         cs.Dispatch(0, InputWidth / 8, InputWidth / 8, 1);
 
         // Palm detection
-        _detector.palm.ProcessImage(_buffer.input);
+        _detector.palm.ProcessInput();
 
         // Hand region bounding box update
         cs.SetFloat("_bbox_dt", Time.deltaTime);
@@ -37,11 +37,11 @@ partial class HandPipeline
         // Hand region cropping
         cs.SetTexture(2, "_crop_input", input);
         cs.SetBuffer(2, "_crop_region", _buffer.region);
-        cs.SetBuffer(2, "_crop_output", _buffer.crop);
+        cs.SetBuffer(2, "_crop_output", _detector.landmark.InputBuffer);
         cs.Dispatch(2, CropSize / 8, CropSize / 8, 1);
 
         // Hand landmark detection
-        _detector.landmark.ProcessImage(_buffer.crop);
+        _detector.landmark.ProcessInput();
 
         // Key point postprocess
         cs.SetFloat("_post_dt", Time.deltaTime);
