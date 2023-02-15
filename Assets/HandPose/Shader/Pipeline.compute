@@ -7,6 +7,8 @@
 #pragma kernel crop_kernel
 #pragma kernel post_kernel
 
+#pragma multi_compile _ NCHW_INPUT
+
 #include "HandRegion.hlsl"
 #include "LowPassFilter.hlsl"
 #include "Misc.hlsl"
@@ -46,10 +48,16 @@ void spad_kernel(uint2 id : SV_DispatchThreadID)
     rgb *= all(uv > 0) && all (uv < 1);
 
     // Tensor element output
+#ifdef NCHW_INPUT
+    uint offs = id.y * _spad_width + id.x;
+    uint stride = _spad_width * _spad_width;
+#else
     uint offs = (id.y * _spad_width + id.x) * 3;
-    _spad_output[offs + 0] = rgb.r;
-    _spad_output[offs + 1] = rgb.g;
-    _spad_output[offs + 2] = rgb.b;
+    uint stride = 1;
+#endif
+    _spad_output[offs + 0 * stride] = rgb.r;
+    _spad_output[offs + 1 * stride] = rgb.g;
+    _spad_output[offs + 2 * stride] = rgb.b;
 }
 
 //
@@ -132,10 +140,16 @@ void crop_kernel(uint2 id : SV_DispatchThreadID)
     float3 rgb = tex2Dgrad(_crop_input, uv, duv_dx, duv_dy).rgb;
 
     // Tensor element output
+#ifdef NCHW_INPUT
+    uint offs = id.y * CROP_IMAGE_SIZE + id.x;
+    uint stride = CROP_IMAGE_SIZE * CROP_IMAGE_SIZE;
+#else
     uint offs = (id.y * CROP_IMAGE_SIZE + id.x) * 3;
-    _crop_output[offs + 0] = rgb.r;
-    _crop_output[offs + 1] = rgb.g;
-    _crop_output[offs + 2] = rgb.b;
+    uint stride = 1;
+#endif
+    _crop_output[offs + 0 * stride] = rgb.r;
+    _crop_output[offs + 1 * stride] = rgb.g;
+    _crop_output[offs + 2 * stride] = rgb.b;
 }
 
 //

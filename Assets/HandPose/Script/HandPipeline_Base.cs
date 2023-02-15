@@ -1,6 +1,7 @@
 using MediaPipe.BlazePalm;
 using MediaPipe.HandLandmark;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace MediaPipe.HandPose {
 
@@ -13,14 +14,12 @@ sealed partial class HandPipeline : System.IDisposable
     #region Private objects
 
     const int CropSize = HandLandmarkDetector.ImageSize;
-
     int InputWidth => _detector.palm.ImageSize;
 
     ResourceSet _resources;
-
     (PalmDetector palm, HandLandmarkDetector landmark) _detector;
-
     (ComputeBuffer region, ComputeBuffer filter) _buffer;
+    GlobalKeyword _keywordNchw;
 
     #endregion
 
@@ -38,6 +37,9 @@ sealed partial class HandPipeline : System.IDisposable
 
         _buffer = (new ComputeBuffer(1, regionStructSize),
                    new ComputeBuffer(filterBufferLength, sizeof(float) * 4));
+
+        _keywordNchw = GlobalKeyword.Create("NCHW_INPUT");
+        Shader.SetKeyword(_keywordNchw, _detector.palm.InputIsNCHW);
     }
 
     void DeallocateObjects()

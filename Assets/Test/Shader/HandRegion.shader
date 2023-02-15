@@ -36,10 +36,16 @@ Shader "Hidden/MediaPipe/HandPose/Visualizer/HandRegion"
                     float4 color : COLOR) : SV_Target
     {
         uint2 p = texCoord * IMAGE_WIDTH;
+#ifdef NCHW_INPUT
+        uint offs = p.y * IMAGE_WIDTH + p.x;
+        uint stride = IMAGE_WIDTH * IMAGE_WIDTH;
+#else
         uint offs = (p.y * IMAGE_WIDTH + p.x) * 3;
-        float r = _Image[offs + 0];
-        float g = _Image[offs + 1];
-        float b = _Image[offs + 2];
+        uint stride = 1;
+#endif
+        float r = _Image[offs + 0 * stride];
+        float g = _Image[offs + 1 * stride];
+        float b = _Image[offs + 2 * stride];
         return float4(r, g, b, 1)* color;
     }
 
@@ -52,6 +58,7 @@ Shader "Hidden/MediaPipe/HandPose/Visualizer/HandRegion"
         Pass
         {
             CGPROGRAM
+            #pragma multi_compile _ NCHW_INPUT
             #pragma vertex Vertex
             #pragma fragment Fragment
             ENDCG
