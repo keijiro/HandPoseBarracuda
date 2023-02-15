@@ -6,6 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/TestVisualizer.unity
-    guid: 16e2f07633259412a9eae42088d3972d
+    path: Assets/TestAnimator.unity
+    guid: 49aaa2374d47645399fa8837f75a0a47
   m_configObjects: {}
